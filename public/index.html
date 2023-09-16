@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>AWS Course Router</title>
+</head>
+
+<body>
+    <h1 id="page-main-message">Routing to AWS Course...</h1>
+
+    <script>
+        // Function to get the value of a query parameter by name
+        function getQueryParam(name) {
+            const urlSearchParams = new URLSearchParams(window.location.search);
+            const paramValue = urlSearchParams.get(name);
+            return paramValue;
+        }
+
+        // Get the 'param' query parameter value
+        const paramValue = getQueryParam('courseIdentifier');
+
+        // Log the value to the console
+        if (paramValue) {
+            console.log('Query Parameter Value:', paramValue);
+        } else {
+            console.log('Query Parameter "param" not found in the URL.');
+        }
+
+        let token = null;
+
+        // Fetch token from Express server
+        fetch('/gettoken')
+            .then(response => response.json())
+            .then(data => {
+                console.log('API Response (Token):', data.data.token);
+                token = data.data.token;
+
+                // Use the token to make another API request to your Express server
+                fetch('/getlearningobjects', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` // Include the token in the Authorization header
+                    },
+                    body: JSON.stringify({
+                        learningobject_type: 'Content',
+                        from_date: '01-01-2022',
+                        to_date: '10-01-2022'
+                    })
+                })
+                    .then(apiResponse => apiResponse.json())
+                    .then(apiData => {
+                        const respArray = apiData.data
+                        console.log('API Response (Learning Objects):', respArray);
+                        console.log('Searching for item with learningobject_id: ', paramValue)
+                        // Search for the item with the matching learningobject_id
+                        const matchingItemsArray = respArray.filter(item => ((item.learningobject_id === parseInt(paramValue, 10)) || item.name === paramValue) );
+                        if (matchingItemsArray.length > 1) {
+                            console.warn('Warning, multiple matches found: ', matchingItemsArray)
+                        }
+
+                        const firstMatchItem = matchingItemsArray[0]
+
+                        if (firstMatchItem) {
+                            console.log('Matching Item:', firstMatchItem);
+                            console.log('Routing to: ', firstMatchItem)
+                            window.location.replace(firstMatchItem.launch_url);
+                            // Handle the matching item here
+                        } else {
+                            console.log('No matching item found for learningobject_id or name:', paramValue);
+                        }
+                        // Handle the API response here
+                    })
+                    .catch(apiError => {
+                        console.error('API Error (Learning Objects):', apiError);
+                        // Handle errors here
+                    });
+            })
+            .catch(error => {
+                console.error('API Error (Token):', error);
+                // Handle errors here
+            });
+    </script>
+</body>
+
+</html>
