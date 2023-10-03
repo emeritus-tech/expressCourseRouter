@@ -1,8 +1,8 @@
 {
   "name": "raven360-aws-course-router",
   "version": "1.0.0",
-  "description": "Express.js Static HTML and API Template",
-  "main": "index.js",
+  "description": "The AWS Course Router is a Node.js application built with Express.js that takes a URL of a specific format, processes query parameters, calls external APIs to find matching courses based on the provided parameters, and reroutes the user to the launch URL of the matching course.",
+  "main": "app.js",
   "type": "module",
   "dependencies": {
     "express": "^4.17.1",
@@ -18,6 +18,10 @@
     "url": "git+https://github.com/emeritus/raven360-aws-course-router.git"
   },
   "keywords": [],
-  "author": "",
-  "license": "MIT"
+  "author": "Mark Pileggi, https://github.com/mp2468",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/emeritus/raven360-aws-course-router/issues"
+  },
+  "homepage": "https://github.com/emeritus/raven360-aws-course-router#readme"
 }

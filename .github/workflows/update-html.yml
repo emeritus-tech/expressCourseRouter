@@ -1,0 +1,50 @@
+name: Update Router HTML
+
+on:
+  push:
+    branches:
+      - main
+  workflow_run:
+    workflows: "Fetch Updated Course List"
+    types:
+      - completed
+
+jobs:
+  update_html:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Read courselist.json
+        id: read_json
+        run: |
+          jsonData=$(cat courselist.json)
+          echo "const jsonData = ${jsonData};" > formatted_json.js
+        shell: bash
+
+      - name: Replace variable in router_template.html
+        run: |
+          awk '/\/\/ The jsonData variable will be inserted here/ { while(getline line < "formatted_json.js") print line; next } 1' router_template.html > router.html.tmp
+        shell: bash
+
+      - name: Move updated router.html
+        run: |
+          mv router.html.tmp router.html
+          cp router.html index.html
+        shell: bash
+
+      - name: Commit and push updated router.html
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          if [[ $(git status --porcelain) ]]; then
+            git add router.html
+            git add index.html
+          git commit -m "Update router.html with jsonData"
+          git push origin main
+          else
+            echo "No changes to router.html. Skipping commit and push."
+          fi
+          

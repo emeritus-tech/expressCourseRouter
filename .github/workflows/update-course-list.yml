@@ -1,0 +1,72 @@
+name: Fetch Updated Course List
+
+# every 5 minutes
+# on:
+#   schedule:
+#     - cron: '*/5 * * * *'
+
+# every 30 days
+on:
+  schedule:
+    - cron: '0 0 */30 * *'
+
+# on push to main branch
+# on:
+#   push:
+#     branches:
+#       - main
+
+jobs:
+  my_job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Get token
+        id: get_token
+        run: |
+          # Use the first curl command to get the token and store it in the 'token' environment file
+          token=$(curl --location --request POST 'https://api.raven360.com/gettoken?client_id=dIT6cA6QZ9PvcUoEgu9lLybN3&client_secret=rPEHS5QPaWWREhnAwKC35A1Y03lB4vbYHQ6u0O0bGz8b4hbMI0' \
+            --header 'x-api-key: FzeHkZh5y98X8TWg5Pjme5TT8eO9wPEV8UMiNTdX' \
+            --header 'Content-Type: text/plain' \
+            --data-raw '{
+                "client_id": "dIT6cA6QZ9PvcUoEgu9lLybN3",
+                "client_secret": "rPEHS5QPaWWREhnAwKC35A1Y03lB4vbYHQ6u0O0bGz8b4hbMI0"
+            }' | jq -r '.data.token')
+          echo "token=$token" >> $GITHUB_ENV
+
+      - name: Use Token in Curl Command
+        run: |
+          # Use the token in the second curl command
+          response=$(curl --location --request POST 'https://api.raven360.com/administration/catalog/learningobjects' \
+            --header 'x-api-key: FzeHkZh5y98X8TWg5Pjme5TT8eO9wPEV8UMiNTdX' \
+            --header "Authorization: ${{ env.token }}" \
+            --header 'Accept: application/json' \
+            --header 'Content-Type: application/json' \
+            --data-raw '{
+                "learningobject_type": "Content",
+                "from_date": "01-01-2022",
+                "to_date": "10-01-2022"
+            }')
+          response_data=$(echo "$response" | jq -r '.data')
+          echo "Response Data: $response_data"
+          jq -r '.data' <<< "$response" > courselist.json
+
+      - name: Commit and Push Response File
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          if [[ $(git status --porcelain) ]]; then
+            git add courselist.json
+            git commit -m "Update courselist.json"
+            git push origin main
+          else
+            echo "No changes to courselist.json. Skipping commit and push."
+          fi
