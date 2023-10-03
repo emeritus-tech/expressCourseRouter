@@ -5,6 +5,7 @@ AWS Course Router
 The AWS Course Router is a Node.js application built with Express.js that takes a URL of a specific format, processes query parameters, calls external APIs to find matching courses based on the provided parameters, and reroutes the user to the launch URL of the matching course.
 Prerequisites
 
+
 Before you can run this application, make sure you have the following installed:
 
     Node.js
