@@ -128,3 +128,12 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+
+# .gitignore
+
+# Ignore router.html and formatted_json.js
+!router.html
+!formatted_json.js
+router.html.tmp
+formatted_json.js
